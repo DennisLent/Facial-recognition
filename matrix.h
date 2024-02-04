@@ -190,20 +190,80 @@ struct Matrix {
   @returns added matrix of type T
   */
   Matrix<T> operator+(const Matrix<T> &other){
-	return add(*this, other);
+	  return add(*this, other);
   }
+
   /*
-  @brief calculate the determinant of Matrix<T>
-  @returns float determinant of the matrix
+  @brief calculate the eigenvalues and eigenvectors of the matrix using the jacobi method
+  @returns returns Matrix E (M by M) containing all the eigenvectors and Matrix e (M by 1) with all the eigenvalues
   */
-  float determinant(){
+  Matrix<T> eigen(){
+
+    //convert actual matrix to one of float to be able to work with calculations
+    auto temp = Matrix<float>(this->M, this->M);
+
+    for(int i = 0; i < this->M; i++){
+      for(int j = 0; j < this-M; j++){
+        temp(i,j) = float(this->operator()(i,j));
+      }
+    }
+
+    //---------- FUNCTIONS ----------
+
+    //index of the largest off-diagonal element in row k
+    int maxind = [](int k, int n, const Matrix<float> temp){
+      int m = k + 1;
+      for(int i=(k+2); i<n; i++){
+        if(abs(mat(k,i)) > abs(mat(k,m))){
+          m = i;
+        }
+      }
+      return m;
+    };
+
+    //update e_k and its status
+    void update = [](int k, float t, const Matrix<float>* e, const Matrix<bool>* changed, int* state){
+      float y = e[k];
+      e[k] = y + t;
+      if(changed[k] && (y == e[k])){
+        changed[k] = false;
+        state--;
+      }
+      else if(!changed[k] && (y != e[k])){
+        changed[k] = true;
+        state++;
+      }
+    };
+
+    //perform rotation on S_ij & S_kl
+    void rotate = [](int k, int l, int i, int j, const Matrix<float>* temp){
+
+    };
+
+    // ---------- INIT ----------
+
+    //output matrix E with eigenvectors
+    auto E = Matrix<float>(this->M, this->M);
+    //output matrix e (a vector) with all the eigenvalues
+    auto e = Matrix<float>(this->M, 1);
+
+    //logical array changed holds the status of each eigenvalue
+    //if the numerical value of e_k or e_l changes during iteration the corresponding component of changed is set to true
+    bool changedData[this->M] = { true };
+    auto changed = Matrix<bool>(this->M, 1, changedData);
+
+    //the integer state counts the number of components of changed which have the value true
+    //iteration stops as soon as state = 0
+    int state = this->M;
+
+    return (E, e);
 
   }
 
 };
 
 template<typename T>
-T det(const Matrix<T> &mat){
+float det(const Matrix<T> &mat){
 	if(mat.M != mat.N){
 		throw domain_error("Not a square matrix");
 	}

@@ -38,7 +38,7 @@ int main(){
     Matrix<float> matrixf1(3,3,data1);
     Matrix<float> matrixf2(3,3,data2);
     Matrix<float> result4 = matrixf1*matrixf2;
-    result4.print(); 
+    result4.print();
 
 
 
