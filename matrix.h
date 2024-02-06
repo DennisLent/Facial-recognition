@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cmath>
 
+#define epsilon 1e-5
+
 using namespace std;
 
 /*
@@ -33,9 +35,6 @@ struct Matrix {
 	data = shared_ptr<T>(new T[M*N](), std::default_delete<T[]>());
 
 	if (values){
-		if((M*N) % (sizeof(values)+1) != 0){
-			throw domain_error("Dimensions of matrix do not match the data");
-		}
 
 		for(int i=0; i<M*N; i++){
 			data.get()[i] = values[i];
@@ -159,11 +158,12 @@ struct Matrix {
   @returns subtracted matrix of type T
   */
   Matrix<T> operator-(const Matrix<T> &other){
-	return sub(*this, other);
+	  return sub(*this, other);
   }
 
   /*
-  @brief add a matrix of type T from another matrix of the same type and dimension
+  @brief add a matrix of type T from another matrix of the same type and dimension. This function uses math based matrix indexing
+  so it has to be adjusted for when using the matrix
   @param A: Matrix<T> a matrix of type T (A by B)
   @param B: Matrix<T> a matrix of type T (A by B)
   @returns C: Matrix<T> added result of matrix A and B
@@ -197,24 +197,25 @@ struct Matrix {
   @brief calculate the eigenvalues and eigenvectors of the matrix using the jacobi method
   @returns returns Matrix E (M by M) containing all the eigenvectors and Matrix e (M by 1) with all the eigenvalues
   */
-  Matrix<T> eigen(){
+  tuple<Matrix<float>, Matrix<float>> eigen(){
 
     //convert actual matrix to one of float to be able to work with calculations
     auto temp = Matrix<float>(this->M, this->M);
 
     for(int i = 0; i < this->M; i++){
-      for(int j = 0; j < this-M; j++){
+      for(int j = 0; j < this->M; j++){
         temp(i,j) = float(this->operator()(i,j));
       }
     }
 
+
     //---------- FUNCTIONS ----------
 
     //index of the largest off-diagonal element in row k
-    int maxind = [](int k, int n, const Matrix<float> temp){
+    auto maxind = [](int k, int n, const Matrix<float> temp){
       int m = k + 1;
       for(int i=(k+2); i<n; i++){
-        if(abs(mat(k,i)) > abs(mat(k,m))){
+        if(abs(temp(k-1,i-1)) > abs(temp(k-1,m-1))){
           m = i;
         }
       }
@@ -222,41 +223,141 @@ struct Matrix {
     };
 
     //update e_k and its status
-    void update = [](int k, float t, const Matrix<float>* e, const Matrix<bool>* changed, int* state){
-      float y = e[k];
-      e[k] = y + t;
-      if(changed[k] && (y == e[k])){
-        changed[k] = false;
+    auto update = [](int k, float t, const Matrix<float>* e, const Matrix<bool>* changed, int* state){
+      float y = e->operator()(k-1,0);
+      e->operator()(k-1,0) = y + t;
+      //if changed and y = e_k
+      if(changed->operator()(k-1,0) && (abs(y - e->operator()(k-1,0)) < epsilon)){
+        changed->operator()(k-1,0) = false;
         state--;
       }
-      else if(!changed[k] && (y != e[k])){
-        changed[k] = true;
+      //if not changed and y != e_k
+      else if(!(changed->operator()(k-1,0)) && (abs(y - e->operator()(k-1,0)) > epsilon)){
+        changed->operator()(k-1,0) = true;
         state++;
       }
     };
 
     //perform rotation on S_ij & S_kl
-    void rotate = [](int k, int l, int i, int j, const Matrix<float>* temp){
-
+    auto rotate = [](int k, int l, int i, int j, float c, float s, const Matrix<float>* temp){
+      float rotationData[4] = {c, -s, s, c};
+      auto rotationMatrix = Matrix<float>(2,2, rotationData);
+      float sValues[2] = {temp->operator()(k-1, l-1), temp->operator()(i-1,j-1)};
+      auto sValuesMatrix = Matrix<float>(2,1, sValues);
+      auto newValues = rotationMatrix*sValuesMatrix;
+      temp->operator()(k-1,l-1) = newValues[0];
+      temp->operator()(i-1,j-1) = newValues[1];
     };
 
     // ---------- INIT ----------
 
-    //output matrix E with eigenvectors
+    //output matrix E with eigenvectors (E=I)
     auto E = Matrix<float>(this->M, this->M);
+    for(int i = 0; i<this->M; i++){
+      for(int j= 0; j<this->M; j++){
+        if(i == j){
+          E(i,j) = 1;
+        }
+        else{
+          E(i,j) = 0;
+        }
+      }
+    }
+
     //output matrix e (a vector) with all the eigenvalues
     auto e = Matrix<float>(this->M, 1);
 
     //logical array changed holds the status of each eigenvalue
     //if the numerical value of e_k or e_l changes during iteration the corresponding component of changed is set to true
-    bool changedData[this->M] = { true };
+    bool changedData[this->M];
+    for(int i = 0; i<this->M; i++){
+      changedData[i] = true;
+    }
     auto changed = Matrix<bool>(this->M, 1, changedData);
 
     //the integer state counts the number of components of changed which have the value true
     //iteration stops as soon as state = 0
     int state = this->M;
 
-    return (E, e);
+    //array ind
+    auto indArray = Matrix<int>(this->M, 1);
+
+    //define n
+    int n = this->M + 1;
+
+    //initialize indArray and e
+    for(int k = 1; k<n; k++){
+      indArray(k-1,0) = maxind(k, n, temp);
+      e(k-1,0) = temp(k-1,k-1);
+    }
+
+    int iteration = 0;
+
+    // ---------- MAIN ----------
+    while(state != 0 && iteration < 20){
+      cout << "iteration: " << iteration << endl;
+      cout << "state: " << state << endl;
+      indArray.print();
+
+      int m = 1;
+      //find index (k,l) to pivot p
+      for(int k = 2; k<(n - 1); k++){
+        if(abs(temp(k-1, indArray(k-1,0))) > abs(temp(m-1, indArray(m-1,0)))){
+          m = k;
+        }
+      }
+
+      int k = m;
+      int l = indArray(m-1, 0);
+      float p = temp(k-1, l-1);
+
+      //calculate c and s
+      float y = (e(l-1,0) - e(k-1,0))/2;
+      float d = abs(y) + sqrt(pow(p,2) + pow(y,2));
+      float r = sqrt(pow(p,2) + pow(d,2));
+      float c = d/r;
+      float s = p/r;
+      float t = pow(p,2)/d;
+      if(y < 0){
+        s = -s;
+        t = -t;
+      }
+
+      temp(k-1,l-1) = 0.0;
+      update(k, -t, &e, &changed, &state);
+      update(l,t, &e, &changed, &state);
+
+      //rotate rows and columns k and l
+      for(int i = 1; i<k; i++){
+        rotate(i, k, i, l, c, s, &temp);
+      }
+      for(int i = (k+1); i<l; i++){
+        rotate(k, i, i, l, c, s, &temp);
+      }
+      for(int i = (l+1); i<n; i++){
+        rotate(k, i, l, i, c, s, &temp);
+      }
+
+      //rotate eigenvectors
+      for(int i = 1; i<n; i++){
+        float rotationData[4] = {c, -s, s, c};
+        auto rotationMatrix = Matrix<float>(2,2, rotationData);
+        float EValues[2] = {temp(k-1, l-1), temp(i-1,l-1)};
+        auto EValuesMatrix = Matrix<float>(2,1, EValues);
+        auto EValuesResult = rotationMatrix*EValuesMatrix;
+        E(i-1,k-1) = EValuesResult[0];
+        E(i-1,l-1) = EValuesResult[1];
+      }
+
+      //update all all potential changed ind_i
+      for(int i = 1; i<n; i++){
+        indArray(i-1,0) = maxind(i, n, temp);
+      }
+
+      iteration++;
+    }
+
+    return make_tuple(E, e);
 
   }
 

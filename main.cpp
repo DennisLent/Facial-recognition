@@ -40,6 +40,20 @@ int main(){
     Matrix<float> result4 = matrixf1*matrixf2;
     result4.print();
 
+    int eigenData[] = {4, -30, 60, -35, -30, 300, -675, 420, 60, -675, 1620, -1050, -35, 420, -1050, 700};
+    cout << "\nMatrix before check: " << endl;
+    cout << "----------" << endl;
+    Matrix<int> eigenTestMatrix(4,4,eigenData);
+    eigenTestMatrix.print();
+    auto result = eigenTestMatrix.eigen();
+    Matrix<float> E = std::get<0>(result);
+    Matrix<float> e = std::get<1>(result);
+
+    cout << "\nMatrix eigen int " << endl;
+    E.print();
+    e.print();
+
+
 
 
     return 0;
