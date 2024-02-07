@@ -53,7 +53,7 @@ struct Matrix {
   }
 
   /*
-  @brief return the element at the specified position (starting from 1,1 to M,N)
+  @brief return the element at the specified position (starting from 0,0 to M-1,N-1)
   @param row row number
   @param col column number
   @returns element at position of type T
@@ -113,7 +113,7 @@ struct Matrix {
   @returns multiplied matrix of type T
   */
   Matrix<T> operator*(const Matrix<T> &other){
-	return mult(*this, other);
+	  return mult(*this, other);
   }
 
   /*
@@ -121,14 +121,14 @@ struct Matrix {
   @returns transposed matrix of type T 
   */
   Matrix<T> transpose() const {
-	Matrix<T> result(N, M);
+    Matrix<T> result(N, M);
 
-	for(int i=0; i<M; i++){
-		for(int j=0; j<N; j++){
-			result(j,i) = this->operator()(i,j);
-		}
-	}
-	return result;
+    for(int i=0; i<M; i++){
+      for(int j=0; j<N; j++){
+        result(j,i) = this->operator()(i,j);
+      }
+    }
+    return result;
   }
 
   /*
@@ -194,18 +194,98 @@ struct Matrix {
   }
 
   /*
+  @brief return the selected column of a matrix of type T (starting at index 0 to M-1)
+  @returns a Matrix (N, 1) with the values of the column vector
+  */
+  Matrix<T> getColumn(int col) {
+    if (col > this->M){
+      throw domain_error("column index out of range");
+    }
+
+    auto result = Matrix<T>(this->N, 1);
+    for(int i = 0; i<this->N; i++){
+      result(i,0) = this->operator()(i, col);
+    }
+
+    return result;
+  }
+
+  /*
+  @brief set the selected column of the matrix with a 1D Matrix (starting at index 0 to M-1)
+  */
+  void setColumn(int col, const Matrix<T> &a) {
+    if (col > this->M){
+      throw domain_error("column index out of range");
+    }
+    if(a.N > this->N){
+      throw domain_error("length of vector a does not fit the matrix");
+    }
+
+    for(int i = 0; i<this->N; i++){
+      this->operator()(i, col) = a(i,0);
+    }
+
+  }
+
+  /*
+  @brief calcualtes the norm of the matrix (measure of size or magnitude)
+  @returns float norm value
+  */
+  float norm(){
+    float sum = 0.0;
+    for(int i = 0; i < this->M; i++){
+      for(int j = 0; j<this->N; j++){
+        sum += float(this->operator()(i,j)*this->operator()(i,j));
+      }
+    }
+    return sqrt(sum);
+  }
+
+  /*
+  @brief L2 comparison of the matrices (|A-B|^2)
+  @returns float of the L2 norm
+  */
+  static float L2(const Matrix<T> &a, const Matrix<T> &b){
+    if((a.M != b.M) || (a.N != b.N)){
+      throw domain_error("Matrix dimensions do not match");
+    }
+
+    float result = 0;
+    for(int i=0; i<a.M; i++){
+      for(int j=0; j<a.N; j++){
+        result += ((a(i,j)-b(i,j))*(a(i,j)-b(i,j)));
+      }
+    }
+
+    result /= (a.M*a.N);
+    return result;
+  }
+
+  /*
+  @brief extract the diagonal elements of the Matrix into a new 1D Matrix
+  @returns 1D Matrix of type T with only the diagonal elements
+  */
+  Matrix<T> diagonal(){
+    int smallestSide = (this->M >= this->N) ? this->N : this->M;
+    auto result = Matrix<T>(smallestSide, 1);
+
+    for(int i=0; i<smallestSide; i++){
+      result(i,0) = this->operator()(i,i);
+    }
+
+    return result;
+  }
+
+  /*
   @brief calculate the eigenvalues and eigenvectors of the matrix using QR decomposition
   @returns returns Matrix E (M by M) containing all the eigenvectors and Matrix e (M by 1) with all the eigenvalues
   */
-  tuple<Matrix<float>, Matrix<float>> eigen(){}
+  tuple<Matrix<float>, Matrix<float>> eigen(){
+
+    //Q and R Matrices
+    //Q is an identity matrix
+    //R is 
+    auto Q = Matrix<float>(this->M, this->M);
+  }
 
 };
-
-template<typename T>
-float eig(const Matrix<T> &mat){
-	if(mat.M != mat.N){
-		throw domain_error("Not a square matrix");
-	}
-	return mat.eigen();
-
-}
