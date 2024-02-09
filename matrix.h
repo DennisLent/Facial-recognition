@@ -3,6 +3,7 @@
 #include <memory>
 #include <iostream>
 #include <cmath>
+#include <tuple>
 
 #define epsilon 1e-5
 
@@ -353,6 +354,20 @@ struct Matrix {
 	  return div(*this, scalar);
   }
 
+  /*
+  @brief divide and assign method for matrices
+  */
+  void operator/=(const T &scalar){
+    for(int i=0; i<this->M; i++){
+      for(int j=0; j<this->N; j++){
+        this->operator()(i,j) = this->operator()(i,j) / scalar;
+      }
+    }
+  }
+
+  /*
+  @brief subtract and assign method for matrices
+  */
   void operator-=(const Matrix<T> &other){
     if(this->N != other.N || this->M != other.M){
       throw domain_error("Matrix dimensions do not match");
@@ -365,6 +380,10 @@ struct Matrix {
     }
   }
 
+  /*
+  @brief Gram-Schmidt process to form an orthonormal basis for matrix. link: https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+  @returns Matrix of floats that contain the orthonormal basis
+  */
   Matrix<float> GramSchmidt(){
 
     //copy matrix to be of type float
@@ -405,6 +424,7 @@ struct Matrix {
 
     //first column vector is u1
     Matrix<float> u1 = temp.getColumn(0);
+    u1 /= u1.norm();
     result.setColumn(0, u1);
 
     //iterate over every column
@@ -418,6 +438,10 @@ struct Matrix {
         v2 -= projection;
       }
 
+      //normalize the vector
+      v2 /= v2.norm();
+
+      //add vector to result
       result.setColumn(i, v2);
 
     }
@@ -426,36 +450,65 @@ struct Matrix {
   }
 
   /*
-  @brief calculate the eigenvalues and eigenvectors using QR decomposition and the Gram-Schmidt process. link: https://en.wikipedia.org/wiki/QR_decomposition
+  @brief Do QR decomposition using Gram-Schmidt process. link: https://en.wikipedia.org/wiki/QR_decomposition
+  @returns tuple of Matrix Q and Matrix R
+  */
+  tuple<Matrix<float>, Matrix<float>> QRDecomposition(){
+
+    Matrix<float> temp = Matrix<float>(this->M, this->N);
+
+    //make a float copy
+    for(int i = 0; i<this->M; i++){
+      for(int j = 0; j<this->N; j++){
+        temp(i,j) = float(this->operator()(i,j));
+      }
+    }
+
+
+    Matrix<float> Q = this->GramSchmidt();
+    Matrix<float> QTranspose = Q.transpose();
+
+    // R = Q^T * A
+    Matrix<float> R = QTranspose*temp;
+
+    //make R upper triangle
+    for(int i = 0; i<this->M; i++){
+      for(int j = 0; j<this->N; j++){
+        if(i > j){
+          R(i,j) = 0.0;
+        }
+      }
+    }
+
+    return make_tuple(Q, R);
+  }
+
+  /*
+  @brief calculate approximations the eigenvalues and eigenvectors using QR decomposition and the Gram-Schmidt process. link: https://people.inf.ethz.ch/arbenz/ewp/Lnotes/chapter4.pdf
+  @params iterations amount of iterations to be done (1000 by default)
   @returns returns Matrix E (M by M) containing all the eigenvectors and Matrix e (M by 1) with all the eigenvalues
   */
-  tuple<Matrix<float>, Matrix<float>> eigen(){
+  Matrix<float> eigen(int iterations = 50000){
 
-    //Q and R Matrices
-    //Q is an identity matrix
-    Matrix<float> Q = Matrix<float>(this->M, this->M);
-    for(int i = 0; i<this->M; i++){
-      for(int j = 0; j<this->M; j++){
-        if(i == j){
-          Q(i,j) = 1.0;
-        }
-        else{
-          Q(i,j) = 0.0;
-        }
-      }
-    }
-
-    //R is a copy of A and make it floats
-    Matrix<float> R = Matrix<float>(this->M, this->M);
+    //make copy for float
+    auto temp = Matrix<float>(this->M, this->N);
     for(int i=0; i<this->M; i++){
-      for(int j=0; j<this->M; j++){
-        R(i,j) = float(this->operator()(i,j));
+      for(int j=0; j<this->N; j++){
+        temp(i,j) = float(this->operator()(i,j));
       }
     }
 
+    auto QQ = temp.identity();
 
+    for(int i = 0; i<iterations; i++){
+      auto decomp = temp.QRDecomposition();
+      auto Q = get<0>(decomp);
+      auto R = get<1>(decomp);
+      temp = R*Q;
+      QQ = QQ*Q;
+    }
 
-    
+    return temp.diagonal();    
 
   }
 
