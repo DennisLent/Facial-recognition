@@ -160,6 +160,22 @@ struct Matrix {
   }
 
   /*
+  @brief method to change matrix of any type to a matrix of float
+  @return Matrix as type float
+  */
+  Matrix<float> toFloat() {
+    Matrix<float> result(N,M);
+
+    for(int i=0; i<M; i++){
+      for(int j=0; j<N; j++){
+        result(i,j) = float(this->operator()(i,j));
+      }
+    }
+
+    return result;
+  }
+
+  /*
   @brief subract a matrix of type T from another matrix of the same type and dimension
   @param A: Matrix<T> a matrix of type T (A by B)
   @param B: Matrix<T> a matrix of type T (A by B)
@@ -387,12 +403,7 @@ struct Matrix {
   Matrix<float> GramSchmidt(){
 
     //copy matrix to be of type float
-    auto temp = Matrix<float>(this->M, this->N);
-    for(int i=0; i<this->M; i++){
-      for(int j=0; j<this->N; j++){
-        temp(i,j) = float(this->operator()(i,j));
-      }
-    }
+    auto temp = this->toFloat();
 
     //calculate the projection of v on u
     auto proj = [](Matrix<float> u, Matrix<float> v){
@@ -455,15 +466,7 @@ struct Matrix {
   */
   tuple<Matrix<float>, Matrix<float>> QRDecomposition(){
 
-    Matrix<float> temp = Matrix<float>(this->M, this->N);
-
-    //make a float copy
-    for(int i = 0; i<this->M; i++){
-      for(int j = 0; j<this->N; j++){
-        temp(i,j) = float(this->operator()(i,j));
-      }
-    }
-
+    auto temp = this->toFloat();
 
     Matrix<float> Q = this->GramSchmidt();
     Matrix<float> QTranspose = Q.transpose();
@@ -485,30 +488,27 @@ struct Matrix {
 
   /*
   @brief calculate approximations the eigenvalues and eigenvectors using QR decomposition and the Gram-Schmidt process. link: https://people.inf.ethz.ch/arbenz/ewp/Lnotes/chapter4.pdf
-  @params iterations amount of iterations to be done (1000 by default)
+  @param iterations amount of iterations to be done (50000 by default)
   @returns returns Matrix E (M by M) containing all the eigenvectors and Matrix e (M by 1) with all the eigenvalues
   */
-  Matrix<float> eigen(int iterations = 50000){
+  tuple<Matrix<float>, Matrix<float>> eigen(int iterations = 50000){
 
     //make copy for float
-    auto temp = Matrix<float>(this->M, this->N);
-    for(int i=0; i<this->M; i++){
-      for(int j=0; j<this->N; j++){
-        temp(i,j) = float(this->operator()(i,j));
-      }
-    }
+    auto temp = this->toFloat();
 
-    auto QQ = temp.identity();
+    auto E = temp.identity();
 
     for(int i = 0; i<iterations; i++){
       auto decomp = temp.QRDecomposition();
       auto Q = get<0>(decomp);
       auto R = get<1>(decomp);
       temp = R*Q;
-      QQ = QQ*Q;
+      E = E*Q;
     }
 
-    return temp.diagonal();    
+    auto e = temp.diagonal();
+
+    return make_tuple(E, e);   
 
   }
 

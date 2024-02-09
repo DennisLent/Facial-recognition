@@ -120,12 +120,17 @@ int main(){
     R.print();
 
     int eigenData[] = {4, -30, 60, -35, -30, 300, -675, 420, 60, -675, 1620, -1050, -35, 420, -1050, 700};
-    cout << "\nMatrix eigenvalues: " << endl;
+    cout << "\nMatrix eigenvalues and vectors: " << endl;
     cout << "----------" << endl;
     Matrix<int> eigenTestMatrix(4,4,eigenData);
-    auto eigenvalues = eigenTestMatrix.eigen();
+    auto eigenResult = eigenTestMatrix.eigen();
+    Matrix<float> E = get<0>(eigenResult);
+    Matrix<float> e = get<1>(eigenResult);
 
-    eigenvalues.print();
+    cout << "E" << endl;
+    E.print();
+    cout << "e" << endl;
+    e.print();
 
     return 0;
 }
