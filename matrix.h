@@ -80,7 +80,7 @@ struct Matrix {
   @param B: Matrix<T> a matrix of type T (B by C)
   @returns result multiplied matrix of type T (A by C)
   */
-  static Matrix<T> mult(const Matrix<T> &a, const Matrix<T> &b){
+  static Matrix<T> multMat(const Matrix<T> &a, const Matrix<T> &b){
 	if(a.N != b.M){
 		throw domain_error("Matrix dimensions do not match");
 	}
@@ -106,6 +106,24 @@ struct Matrix {
 	return result;
 
   }
+
+  /*
+  @brief multiply matrix with a scalar
+  @param A: Matrix<T> a matrix of type T
+  @param scalar: Scalar of type T
+  @returns Matrix of type T multiplied with the scalar
+  */
+  static Matrix<T> multScalar(const Matrix<T> &a, const T &scalar){
+    auto result = Matrix<T>(a.M, a.N);
+
+    for(int i = 0; i<a.M; i++){
+      for(int j = 0; j<a.N; j++){
+        result(i,j) = a(i,j) * scalar;
+      }
+    }
+
+    return result;
+  }
   
   /*
   @brief multiply one matrix of type T with another matrix of type T 
@@ -113,7 +131,16 @@ struct Matrix {
   @returns multiplied matrix of type T
   */
   Matrix<T> operator*(const Matrix<T> &other){
-	  return mult(*this, other);
+	  return multMat(*this, other);
+  }
+
+  /*
+  @brief multiply one matrix of type T with a scalar
+  @param scalar scalar of type T
+  @returns multiplied matrix of type T
+  */
+  Matrix<T> operator*(const T &scalar){
+    return multScalar(*this, scalar);
   }
 
   /*
@@ -277,15 +304,159 @@ struct Matrix {
   }
 
   /*
-  @brief calculate the eigenvalues and eigenvectors of the matrix using QR decomposition
+  @brief create an identity matrix in form of the the reference matrix (has to be square)
+  @returns indentity matrix
+  */
+  Matrix<T> identity(){
+    if(this->M != this->N){
+      throw domain_error("not a square matrix");
+    }
+
+    auto result = Matrix<T>(this->M, this->M);
+
+    for(int i = 0; i<this->M; i++){
+      for(int j = 0; j<this->M; j++){
+        if(i == j){
+          result(i,j) = static_cast<T>(1);
+        }
+        else{
+          result(i,j) = static_cast<T>(0);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /*
+  @brief method to divide matrix by a given scalar a/s
+  @returns matrix of type T divided by a scalar
+  */
+  static Matrix<T> div(const Matrix<T> &a, const T &scalar){
+    
+    auto result = Matrix<T>(a.M, a.N);
+
+    for(int i=0; i<a.M; i++){
+      for(int j=0; j<a.N; j++){
+        result(i,j) = a(i,j) / scalar;
+      }
+    }
+
+	  return result;
+  }
+
+  /*
+  @brief operator for dividing matrix by a scalar
+  @returns matrix divided by a scalar
+  */
+  Matrix<T> operator/(const T &scalar){
+	  return div(*this, scalar);
+  }
+
+  void operator-=(const Matrix<T> &other){
+    if(this->N != other.N || this->M != other.M){
+      throw domain_error("Matrix dimensions do not match");
+    }
+
+    for(int i = 0; i<this->M; i++){
+      for(int j =0; j<this->N; j++){
+        this->operator()(i,j) = this->operator()(i,j) - other(i,j);
+      }
+    }
+  }
+
+  Matrix<float> GramSchmidt(){
+
+    //copy matrix to be of type float
+    auto temp = Matrix<float>(this->M, this->N);
+    for(int i=0; i<this->M; i++){
+      for(int j=0; j<this->N; j++){
+        temp(i,j) = float(this->operator()(i,j));
+      }
+    }
+
+    //calculate the projection of v on u
+    auto proj = [](Matrix<float> u, Matrix<float> v){
+
+      //dot product for projections
+      auto dotProduct = [](Matrix<float> a, Matrix<float> b){
+
+        float result = 0.0;
+
+        for(int i = 0; i<a.M; i++){
+          result += a(i,0) * b(i,0);
+        }
+
+        return result;
+      };
+
+      float vu = dotProduct(u,v);
+      float uu = dotProduct(u,u);
+
+      float scalar = vu/uu;
+
+      Matrix<float> result = u*scalar;
+
+      return result;
+    };
+
+    //Gram Schmidt process
+    auto result = Matrix<float>(this->M, this->N);
+
+    //first column vector is u1
+    Matrix<float> u1 = temp.getColumn(0);
+    result.setColumn(0, u1);
+
+    //iterate over every column
+    for(int i = 1; i<this->N; i++){
+
+      Matrix<float> v2 = temp.getColumn(i);
+
+      //subtract projection of colum on each previous column
+      for(int j = 0; j<i; j++){
+        auto projection = proj(result.getColumn(j), v2);
+        v2 -= projection;
+      }
+
+      result.setColumn(i, v2);
+
+    }
+
+    return result;
+  }
+
+  /*
+  @brief calculate the eigenvalues and eigenvectors using QR decomposition and the Gram-Schmidt process. link: https://en.wikipedia.org/wiki/QR_decomposition
   @returns returns Matrix E (M by M) containing all the eigenvectors and Matrix e (M by 1) with all the eigenvalues
   */
   tuple<Matrix<float>, Matrix<float>> eigen(){
 
     //Q and R Matrices
     //Q is an identity matrix
-    //R is 
-    auto Q = Matrix<float>(this->M, this->M);
+    Matrix<float> Q = Matrix<float>(this->M, this->M);
+    for(int i = 0; i<this->M; i++){
+      for(int j = 0; j<this->M; j++){
+        if(i == j){
+          Q(i,j) = 1.0;
+        }
+        else{
+          Q(i,j) = 0.0;
+        }
+      }
+    }
+
+    //R is a copy of A and make it floats
+    Matrix<float> R = Matrix<float>(this->M, this->M);
+    for(int i=0; i<this->M; i++){
+      for(int j=0; j<this->M; j++){
+        R(i,j) = float(this->operator()(i,j));
+      }
+    }
+
+
+
+    
+
   }
 
 };

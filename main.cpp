@@ -26,6 +26,11 @@ int main(){
     Matrix<int> result1 = matrix1*matrix2;
     result1.print();
 
+    cout << "\nScalar Matrix mult int " << endl;
+    cout << "----------" << endl;
+    Matrix<int> mult1 = matrix1*5;
+    mult1.print();
+
     cout << "\nMatrix sub int " << endl;
     cout << "----------" << endl;
     Matrix<int> result2 = matrix1 - matrix2;
@@ -77,21 +82,42 @@ int main(){
     Matrix<int> diagonalized2 = tester.diagonal();
     diagonalized2.print();
 
+    cout << "\nMatrix identity " << endl;
+    cout << "----------" << endl;
+    float data5[] = {1.2,2.4,3.7,4.1,5.9,6.4,7.3,8.7,9.9};
+    Matrix<float> matrixf5(3,3,data5);
+    Matrix<float> id = matrixf5.identity();
+    id.print();
 
+    cout << "\nMatrix division " << endl;
+    cout << "----------" << endl;
+    float data6[] = {1.2,2.4,3.7,4.1,5.9,6.4,7.3,8.7,9.9};
+    Matrix<float> matrixf6(3,3,data5);
+    Matrix<float> div = matrixf6/float(5.5);
+    div.print();
 
+    cout << "\nGram-Schmidt " << endl;
+    cout << "----------" << endl;
+    int data7[] = {12, -51, 4, 6, 167, -68, -4, 24, -41};
+    Matrix<int> matrix7(3,3,data7);
+    cout << "\nMatrix before" << endl;
+    matrix7.print();
+    cout << "\nMatrix after" << endl;
+    Matrix<float> GramSchmidt = matrix7.GramSchmidt();
+    GramSchmidt.print();
 
-    // int eigenData[] = {4, -30, 60, -35, -30, 300, -675, 420, 60, -675, 1620, -1050, -35, 420, -1050, 700};
-    // cout << "\nMatrix before check: " << endl;
-    // cout << "----------" << endl;
-    // Matrix<int> eigenTestMatrix(4,4,eigenData);
-    // eigenTestMatrix.print();
-    // auto result = eigenTestMatrix.eigen();
-    // Matrix<float> E = std::get<0>(result);
-    // Matrix<float> e = std::get<1>(result);
+    int eigenData[] = {4, -30, 60, -35, -30, 300, -675, 420, 60, -675, 1620, -1050, -35, 420, -1050, 700};
+    cout << "\nMatrix before check: " << endl;
+    cout << "----------" << endl;
+    Matrix<int> eigenTestMatrix(4,4,eigenData);
+    eigenTestMatrix.print();
+    auto result = eigenTestMatrix.eigen();
+    Matrix<float> E = std::get<0>(result);
+    Matrix<float> e = std::get<1>(result);
 
-    // cout << "\nMatrix eigen int " << endl;
-    // E.print();
-    // e.print();
+    cout << "\nMatrix eigen int " << endl;
+    E.print();
+    e.print();
 
 
 
