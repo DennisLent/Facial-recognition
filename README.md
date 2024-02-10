@@ -9,8 +9,11 @@ Actual data taken from kaggle: https://www.kaggle.com/datasets/tavarez/the-orl-d
 ## Quick setup
 Create directory and compile the projects
 ```mkdir build```
+
 ```cd build```
+
 ```cmake ..```
+
 ```cmake --build .```
 
 To run the main file
