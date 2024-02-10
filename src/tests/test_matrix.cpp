@@ -79,9 +79,15 @@ void testMatMultFloat(){
     Matrix<float> matrix2(3,3,data2);
     Matrix<float> result1 = matrix1*matrix2;
 
+    const float ep = 0.0001;
+
     float result[] = {38.75, 48.37, 53.37, 77.73, 99.1, 109.58, 119.66, 153.45, 169.65};
     for(int i = 0; i<result1.M*result1.N; i++){
-        assert(result1[i] == result[i]);
+        if (abs(result1[i] - result[i]) > ep) {
+        std::cerr << "Error: Unexpected result at index " << i << std::endl;
+        std::cerr << "Expected: " << result[i] << ", Actual: " << result1[i] << std::endl;
+        assert(false);
+        }
     }
 }
 
@@ -116,8 +122,14 @@ void testNorm(){
     Matrix<int> mat1(3,3,data);
 
     float norm = mat1.norm();
+    float norm_calculated = sqrt(1*1 + 2*2 + 3*3 + 4*4 + 5*5 + 6*6 + 7*7 + 8*8 + 9*9);
 
-    assert(norm == 16.8819);
+    float ep = 0.0001;
+
+    if (abs(norm - norm_calculated) > ep) {
+        std::cerr << "Expected: " << norm_calculated << ", Actual: " << norm << std::endl;
+        assert(false);
+    }
 }
 
 void testL2(){
@@ -142,10 +154,17 @@ void testDiagonal(){
 
     int data2[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
     int diagData2[] = {1, 6, 11, 16};
-    Matrix<int> diagonal2(5, 4, data2);
+    Matrix<int> mat2(5, 4, data2);
+    Matrix<int> diagonal2 = mat2.diagonal();
+
+    float ep = 0.0001;
 
     for(int i = 0; i<diagonal2.M; i++){
-        assert(diagonal2[i] == diagData2[i]);
+        if (abs(diagonal2[i] - diagData2[i]) > ep) {
+            std::cerr << "Error: Unexpected result at index " << i << std::endl;
+            std::cerr << "Expected: " << diagData2[i] << ", Actual: " << diagonal2[i] << std::endl;
+            assert(false);
+        }
     }
 }
 
@@ -154,13 +173,13 @@ void testIdentity(){
     Matrix<float> mat(3,3,data);
     Matrix<float> id = mat.identity();
 
-    for(int i = 0; i<mat.M; i++){
-        for(int j = 0; j<mat.N; j++){
+    for(int i = 0; i<id.M; i++){
+        for(int j = 0; j<id.N; j++){
             if (i == j){
-                assert(mat(i,j) == 1.0);
+                assert(id(i,j) == 1.0);
             }
             else{
-                assert(mat(i,j) == 0.0);
+                assert(id(i,j) == 0.0);
             }
         }
     }
@@ -171,8 +190,15 @@ void testDivision(){
     Matrix<float> mat(3,3,data);
     Matrix<float> div = mat/float(5.5);
     float result[] = {0.218182, 0.436364, 0.672727, 0.745455, 1.07273, 1.16364, 1.32727, 1.58182, 1.8};
+
+    float ep = 0.0001;
+
     for(int i = 0; i<mat.M*mat.N; i++){
-        assert(mat[i] == result[i]);
+        if (abs(result[i] - div[i]) > ep) {
+            std::cerr << "Error: Unexpected result at index " << i << std::endl;
+            std::cerr << "Expected: " << result[i] << ", Actual: " << div[i] << std::endl;
+            assert(false);
+        }
     }
 }
 
@@ -183,8 +209,14 @@ void testGramSchmidt(){
     Matrix<float> GramSchmidt = mat.GramSchmidt();
     float result[] = {0.857143, -0.394286, -0.331429, 0.428571, 0.902857, 0.0342858, -0.285714, 0.171429, -0.942857};
 
+    float ep = 0.0001;
+
     for(int i = 0; i<mat.M*mat.N; i++){
-        assert(mat[i] == result[i]);
+        if (abs(result[i] - GramSchmidt[i]) > ep) {
+            std::cerr << "Error: Unexpected result at index " << i << std::endl;
+            std::cerr << "Expected: " << result[i] << ", Actual: " << GramSchmidt[i] << std::endl;
+            assert(false);
+        }
     }
 }
 
@@ -198,9 +230,20 @@ void testQR(){
     float Qresult[] = {0.857143, -0.394286, -0.331429, 0.428571, 0.902857, 0.0342858, -0.285714, 0.171429, -0.942857};
     float Rresult[] = {14, 21, -14, 0, 175, -70, 0, 0, 35};
 
+    float ep = 0.0001;
+
     for(int i = 0; i<mat.M*mat.N; i++){
-        assert(Q[i] == Qresult[i]);
-        assert(R[i] == Rresult[i]);
+        if (abs(Qresult[i] - Q[i]) > ep) {
+            std::cerr << "Error: Unexpected result at index " << i << std::endl;
+            std::cerr << "Expected: " << Qresult[i] << ", Actual: " << Q[i] << std::endl;
+            assert(false);
+        }
+
+        if (abs(Rresult[i] - R[i]) > ep) {
+            std::cerr << "Error: Unexpected result at index " << i << std::endl;
+            std::cerr << "Expected: " << Rresult[i] << ", Actual: " << R[i] << std::endl;
+            assert(false);
+        }
     }
 }
 
@@ -230,8 +273,13 @@ void testEigen(){
         E_error += absdiff(Eresult[i], E[i]);
     }
 
-    cout << "Overall error of eigenvalues = " << e_error << endl;
-    cout << "Overall error of eigenvectors = " << E_error << endl;
+    e_error /= e.M;
+    E_error /= (E.M*E.M);
+
+    //since this is an iterative method the error should be less that 1% = 0.01
+
+    assert(e_error <= 0.01);
+    assert(E_error <= 0.01);
 }
 
 
@@ -239,7 +287,7 @@ void testEigen(){
 
 int main(){
 
-    printf("===== Running Tests =====");
+    cout << "===== Running Matrix Tests =====" << endl;;
     testInit();
     testExtract();
     testMatMult();
@@ -258,6 +306,6 @@ int main(){
     testQR();
     testEigen();
 
-    printf("===== All tests passed =====");
+    cout << "===== All Matrix tests passed =====" << endl;;
     return 0;
 }
