@@ -8,6 +8,7 @@ Actual data taken from kaggle: https://www.kaggle.com/datasets/tavarez/the-orl-d
 
 ## Quick setup
 Create directory and compile the projects
+
 ```mkdir build```
 
 ```cd build```
@@ -17,14 +18,16 @@ Create directory and compile the projects
 ```cmake --build .```
 
 To run the main file
+
 ```./main```
 
 To run the tests
+
 ```./test```
 
 ## Todo:
-> PCA transform
-> read image data
-> openMP to improve performance
+- PCA transform
+- read image data
+- openMP to improve performance
 
 
