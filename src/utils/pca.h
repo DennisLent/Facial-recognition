@@ -11,9 +11,10 @@ using namespace std;
 /*
 @brief function to read all the data from the images folder and returns training and testing sets 
 @param split amount of the images to be used as training data (deafult is 0.5)
+@param poolingFactor to compress the image (default is 2)
 @returns tuple of vector<Image> of train and test
 */
-tuple<vector<Image>, vector<Image>> createData(float split = 0.5){
+tuple<vector<Image>, vector<Image>> createData(float split = 0.5, int poolingFactor = 2){
 
     vector<Image> train;
     vector<Image> test;
@@ -23,7 +24,7 @@ tuple<vector<Image>, vector<Image>> createData(float split = 0.5){
 
         //create path
         string path = "../images/archive/" + to_string(i) + "_" + to_string(subject) + ".jpg";
-        auto image = Image(path.c_str());
+        auto image = Image(path.c_str(), poolingFactor);
 
         if(image.imageNumber <= int(split*10) - 1){
             train.push_back(image);
@@ -44,11 +45,11 @@ tuple<vector<Image>, vector<Image>> createData(float split = 0.5){
 /*
 @brief creates the training matrix from the training data and performs PCA
 @param trainData the training data extracted from the images
-@param k amount of eigenvectors to use
+@param k amount of eigenvectors to use (default is 100)
 @param verbose print more information about background processes (false by default)
 @returns tuple<Matrix<float>, Matrix<float> of the average faces and the k-highest eigenvectors
 */
-Matrix<float> Train(vector<Image> trainData, int k, bool verbose=false){
+Matrix<float> Train(vector<Image> trainData, int k=100, bool verbose=false){
     
     
 

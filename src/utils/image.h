@@ -17,12 +17,20 @@ struct Image {
     /*
     @brief constructor method for the Image struct
     @param imagePath path to the location of the jpg image
+    @param poolingFactor factor by which the image can be rescaled at (default is 2)
     @returns Image containing the grayscale values of the image in the Matrix struct
     */
-    Image(const char* imagePath){
+    Image(const char* imagePath, int poolingFactor = 2){
         Mat img = imread(imagePath, IMREAD_GRAYSCALE);
         int cols = img.cols;
         int rows = img.rows;
+
+        Mat pooledImg;
+        Size newSize(cols/poolingFactor, rows/poolingFactor);
+        resize(img, pooledImg, newSize, 0, 0, INTER_AREA);
+
+        cols = pooledImg.cols;
+        rows = pooledImg.rows;
 
         //find the name of the file to add to the image
         string fullPath(imagePath);

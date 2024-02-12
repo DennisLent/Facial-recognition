@@ -436,42 +436,17 @@ struct Matrix {
     //copy matrix to be of type float
     auto temp = this->toFloat();
 
-    //calculate the projection of v on u
-    auto proj = [](Matrix<float> u, Matrix<float> v){
+    //dot product for projections
+    auto dotProduct = [](Matrix<float> a, Matrix<float> b){
 
-      //dot product for projections
-      auto dotProduct = [](Matrix<float> a, Matrix<float> b){
+      float result = 0.0;
 
-        float result = 0.0;
-
-        for(int i = 0; i<a.M; i++){
-          result += a(i,0) * b(i,0);
-        }
-
-        return result;
-      };
-
-      float vu = dotProduct(u,v);
-      float uu = dotProduct(u,u);
-
-      float scalar = vu/uu;
-
-      Matrix<float> result = u*scalar;
+      for(int i = 0; i<a.M; i++){
+        result += a(i,0) * b(i,0);
+      }
 
       return result;
     };
-
-          //dot product for projections
-      auto dotProduct = [](Matrix<float> a, Matrix<float> b){
-
-        float result = 0.0;
-
-        for(int i = 0; i<a.M; i++){
-          result += a(i,0) * b(i,0);
-        }
-
-        return result;
-      };
 
     //Gram Schmidt process
     auto result = Matrix<float>(this->M, this->N);
@@ -558,6 +533,7 @@ struct Matrix {
 
       if(progress){
         int pos = width * int(i/iterations);
+        cout << "\rProgress: [";
         for(int j = 0; j<width; j++){
           if(j< pos){
             cout << "=";
@@ -575,7 +551,6 @@ struct Matrix {
         cout.flush();
       }
     }
-
     if(progress){
       cout << endl;
     }
