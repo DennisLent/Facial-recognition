@@ -14,6 +14,5 @@ int main(){
 
     auto Vk = Train(trainData, 15, true);
 
-
     return 0;
 }

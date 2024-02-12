@@ -98,8 +98,8 @@ Matrix<float> Train(vector<Image> trainData, int k, bool verbose=false){
     if(verbose){
         cout << "===== Find Eigenvectors and Values =====" << endl;
     }
-    
-    auto result = C.eigen();
+
+    auto result = C.eigen(50000, verbose);
     auto E = get<0>(result);
     auto e = get<1>(result);
 

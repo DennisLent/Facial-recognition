@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <tuple>
+#include <omp.h>
 
 using namespace std;
 
@@ -92,6 +93,7 @@ struct Matrix {
 
 	auto result = Matrix<T>(result_rows, result_cols);
 
+  #pragma omp parallel for
 	for(int i=0; i<result_rows; i++){
 		for(int j=0; j<result_cols; j++){
 			
@@ -117,7 +119,8 @@ struct Matrix {
   */
   static Matrix<T> multScalar(const Matrix<T> &a, const T &scalar){
     auto result = Matrix<T>(a.M, a.N);
-
+  
+    #pragma omp parallel for
     for(int i = 0; i<a.M; i++){
       for(int j = 0; j<a.N; j++){
         result(i,j) = a(i,j) * scalar;
@@ -151,7 +154,8 @@ struct Matrix {
   */
   Matrix<T> transpose() const {
     Matrix<T> result(N, M);
-
+  
+    #pragma omp parallel for
     for(int i=0; i<M; i++){
       for(int j=0; j<N; j++){
         result(j,i) = this->operator()(i,j);
@@ -167,6 +171,7 @@ struct Matrix {
   Matrix<float> toFloat() {
     Matrix<float> result(N,M);
 
+    #pragma omp parallel for
     for(int i=0; i<M; i++){
       for(int j=0; j<N; j++){
         result(i,j) = float(this->operator()(i,j));
@@ -189,6 +194,7 @@ struct Matrix {
 
 	auto result = Matrix<T>(a.M, a.N);
 
+  #pragma omp parallel for
 	for(int i=0; i<a.M; i++){
 		for(int j=0; j<a.N; j++){
 			result(i,j) = a(i,j) - b(i,j);
@@ -220,6 +226,7 @@ struct Matrix {
 
 	auto result = Matrix<T>(a.M, a.N);
 
+  #pragma omp parallel for
 	for(int i=0; i<a.M; i++){
 		for(int j=0; j<a.N; j++){
 			result(i,j) = a(i,j) + b(i,j);
@@ -278,6 +285,7 @@ struct Matrix {
   */
   float norm(){
     float sum = 0.0;
+
     for(int i = 0; i < this->M; i++){
       for(int j = 0; j<this->N; j++){
         sum += float(this->operator()(i,j)*this->operator()(i,j));
@@ -296,6 +304,7 @@ struct Matrix {
     }
 
     float result = 0;
+
     for(int i=0; i<a.M; i++){
       for(int j=0; j<a.N; j++){
         result += ((a(i,j)-b(i,j))*(a(i,j)-b(i,j)));
@@ -332,6 +341,7 @@ struct Matrix {
 
     auto result = Matrix<T>(this->M, this->M);
 
+    #pragma omp parallel for
     for(int i = 0; i<this->M; i++){
       for(int j = 0; j<this->M; j++){
         if(i == j){
@@ -354,6 +364,7 @@ struct Matrix {
     
     auto result = Matrix<T>(a.M, a.N);
 
+    #pragma omp parallel for
     for(int i=0; i<a.M; i++){
       for(int j=0; j<a.N; j++){
         result(i,j) = a(i,j) / scalar;
@@ -375,6 +386,8 @@ struct Matrix {
   @brief divide and assign method for matrices
   */
   void operator/=(const T &scalar){
+
+    #pragma omp parallel for
     for(int i=0; i<this->M; i++){
       for(int j=0; j<this->N; j++){
         this->operator()(i,j) = this->operator()(i,j) / scalar;
@@ -390,6 +403,7 @@ struct Matrix {
       throw domain_error("Matrix dimensions do not match");
     }
 
+    #pragma omp parallel for
     for(int i = 0; i<this->M; i++){
       for(int j =0; j<this->N; j++){
         this->operator()(i,j) = this->operator()(i,j) - other(i,j);
@@ -405,6 +419,7 @@ struct Matrix {
       throw domain_error("Matrix dimensions do not match");
     }
 
+    #pragma omp parallel for
     for(int i = 0; i<this->M; i++){
       for(int j =0; j<this->N; j++){
         this->operator()(i,j) = this->operator()(i,j) + other(i,j);
@@ -491,6 +506,7 @@ struct Matrix {
     Matrix<float> R = QTranspose*temp;
 
     //make R upper triangle
+    #pragma omp parallel for
     for(int i = 0; i<this->M; i++){
       for(int j = 0; j<this->N; j++){
         if(i > j){
@@ -505,14 +521,20 @@ struct Matrix {
   /*
   @brief calculate approximations the eigenvalues and eigenvectors using QR decomposition and the Gram-Schmidt process. link: https://people.inf.ethz.ch/arbenz/ewp/Lnotes/chapter4.pdf
   @param iterations amount of iterations to be done (50000 by default)
+  @param progress prints more information about the process for the main loop (false by default)
   @returns returns Matrix E (M by M) containing all the eigenvectors and Matrix e (M by 1) with all the eigenvalues
   */
-  tuple<Matrix<float>, Matrix<float>> eigen(int iterations = 50000){
+  tuple<Matrix<float>, Matrix<float>> eigen(int iterations = 50000, bool progress=false){
+    int width = 50;
 
     //make copy for float
     auto temp = this->toFloat();
 
     auto E = temp.identity();
+
+    if(progress){
+      cout << "Progress: [";
+    }
 
     for(int i = 0; i<iterations; i++){
       auto decomp = temp.QRDecomposition();
@@ -520,6 +542,29 @@ struct Matrix {
       auto R = get<1>(decomp);
       temp = R*Q;
       E = E*Q;
+
+      if(progress){
+        int pos = width * int(i/iterations);
+        for(int j = 0; j<width; j++){
+          if(j< pos){
+            cout << "=";
+          }
+          else if(j == pos){
+            cout << ">";
+          }
+          else{
+            cout << " ";
+          }
+        }
+        
+
+        cout << "] " << int(i/iterations * 100.0) << "%\r";
+        cout.flush();
+      }
+    }
+
+    if(progress){
+      cout << endl;
     }
 
     auto e = temp.diagonal();
@@ -556,6 +601,7 @@ struct Matrix {
     int newCols = end - start;
     Matrix<T> result(this->M, newCols);
 
+    #pragma omp parallel for
     for(int i = 0; i<this->M; i++){
       for(int j = start; j < end; j++){
         result(i, j - start) = this->operator()(i,j);
