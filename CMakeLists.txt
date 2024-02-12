@@ -16,7 +16,8 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 add_executable(main 
 src/main.cpp
 src/utils/matrix.h
-src/utils/image.h)
+src/utils/image.h
+src/utils/pca.h)
 
 #link
 target_link_libraries( main ${OpenCV_LIBS} )

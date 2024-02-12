@@ -398,6 +398,21 @@ struct Matrix {
   }
 
   /*
+  @brief add and assign method for matrices
+  */
+  void operator+=(const Matrix<T> &other){
+    if(this->N != other.N || this->M != other.M){
+      throw domain_error("Matrix dimensions do not match");
+    }
+
+    for(int i = 0; i<this->M; i++){
+      for(int j =0; j<this->N; j++){
+        this->operator()(i,j) = this->operator()(i,j) + other(i,j);
+      }
+    }
+  }
+
+  /*
   @brief Gram-Schmidt process to form an orthonormal basis for matrix. link: https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
   @returns Matrix of floats that contain the orthonormal basis
   */
@@ -510,6 +525,44 @@ struct Matrix {
     auto e = temp.diagonal();
 
     return make_tuple(E, e);   
+
+  }
+
+  /*
+  @brief method to change the shape of the matrix from M by N to M*N by 1
+  @returns flattened matrix
+  */
+  Matrix<T> flatten(){
+    auto result = Matrix<T>(this->M*this->N, 1);
+
+    for(int i=0; i<this->M*this->N; i++){
+      result[i] = this->operator[](i);
+    }
+
+    return result;
+  }
+
+  /*
+  @brief method to return slices of the matrix 
+  @param start starting index of the column to extract
+  @param end ending index of the columns to extract (not included)
+  @returns matrix with selected columns
+  */
+  Matrix<T> slice(int start, int end){
+    if((start < 0) || (end >= this->N) || (start > end)){
+      throw domain_error("invalid columns");
+    }
+
+    int newCols = end - start;
+    Matrix<T> result(this->M, newCols);
+
+    for(int i = 0; i<this->M; i++){
+      for(int j = start; j < end; j++){
+        result(i, j - start) = this->operator()(i,j);
+      }
+    }
+
+    return result;
 
   }
 

@@ -282,6 +282,31 @@ void testEigen(){
     assert(E_error <= 0.01);
 }
 
+void testFlatten(){
+    int data[] = {4, -30, 60, -35, -30, 300, -675, 420, 60, -675, 1620, -1050, -35, 420, -1050, 700};
+    Matrix<int> mat(4,4,data);
+    
+    auto flat = mat.flatten();
+
+    assert(flat.M == 16);
+    assert(flat.N == 1);
+}
+
+void testSlice(){
+    int data[] = {4, -30, 60, -35, -30, 300, -675, 420, 60, -675, 1620, -1050, -35, 420, -1050, 700};
+    Matrix<int> mat(4,4,data);
+
+    auto slice = mat.slice(0, 3);
+
+    assert(slice.M == mat.M);
+    assert(slice.N == 3);
+
+    int result[] = {4, -30, 60, -30, 300, -675, 60, -675, 1620, -35, 420, -1050};
+    for(int i = 0; i<slice.M*slice.N; i++){
+        assert(slice[i] == result[i]);
+    }
+}
+
 
 
 
@@ -305,6 +330,8 @@ int MatrixTests(){
     testGramSchmidt();
     testQR();
     testEigen();
+    testFlatten();
+    testSlice();
 
     return 0;
 }

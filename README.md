@@ -5,6 +5,8 @@ link to database for faces: https://cam-orl.co.uk/facedatabase.html
 Actual data taken from kaggle: https://www.kaggle.com/datasets/tavarez/the-orl-database-for-training-and-testing?resource=download
 
 ## Quick setup
+In order to run the program, you will need to make sure that you have OpenMP and OpenCV installed. 
+
 Create directory and compile the projects
 
 ```mkdir build```
@@ -23,11 +25,6 @@ To run the tests
 
 ```./test```
 
-## Todo:
-- PCA transform
-- read image data using opencv
-- openMP to improve performance
-- get imports for opencv and openmp running
 
 
 
