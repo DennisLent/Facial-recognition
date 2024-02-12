@@ -4,8 +4,6 @@ Facial recognition using Eigenfaces in C++
 link to database for faces: https://cam-orl.co.uk/facedatabase.html
 Actual data taken from kaggle: https://www.kaggle.com/datasets/tavarez/the-orl-database-for-training-and-testing?resource=download
 
-
-
 ## Quick setup
 Create directory and compile the projects
 
@@ -27,7 +25,9 @@ To run the tests
 
 ## Todo:
 - PCA transform
-- read image data
+- read image data using opencv
 - openMP to improve performance
+- get imports for opencv and openmp running
+
 
 

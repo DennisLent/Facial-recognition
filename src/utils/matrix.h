@@ -5,8 +5,6 @@
 #include <cmath>
 #include <tuple>
 
-#define epsilon 1e-5
-
 using namespace std;
 
 /*
@@ -70,7 +68,7 @@ struct Matrix {
   @brief print the matrix in it's entirety (not advised for large matrices)
   */
   void print() {
-        for(int row=0; row<M; row++){
+    for(int row=0; row<M; row++){
 			for(int col=0; col<N; col++){
 				cout << this->operator()(row, col) << " ";
 			}

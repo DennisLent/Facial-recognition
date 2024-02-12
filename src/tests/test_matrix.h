@@ -8,7 +8,7 @@
 
 
 
-void testInit(){
+void testInitMatrix(){
     int data[] = {1,2,3,4,5,6,7,8,9};
     Matrix<int> mat(3,3,data);
 
@@ -285,10 +285,10 @@ void testEigen(){
 
 
 
-int main(){
+int MatrixTests(){
 
-    cout << "===== Running Matrix Tests =====" << endl;;
-    testInit();
+    cout << "===== Running Matrix Tests =====" << endl;
+    testInitMatrix();
     testExtract();
     testMatMult();
     testScalarMult();
@@ -306,6 +306,5 @@ int main(){
     testQR();
     testEigen();
 
-    cout << "===== All Matrix tests passed =====" << endl;;
     return 0;
 }
