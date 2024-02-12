@@ -8,7 +8,7 @@ using namespace std;
 
 int main(){
 
-    auto data = createData();
+    auto data = createData(0.5);
     auto trainData = get<0>(data);
     auto testData = get<1>(data);
 

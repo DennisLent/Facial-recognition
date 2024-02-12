@@ -9,10 +9,11 @@
 using namespace std;
 
 /*
-@brief function to read all the data from the images folder and returns training and testing sets (70/30 split)
+@brief function to read all the data from the images folder and returns training and testing sets 
+@param split amount of the images to be used as training data (deafult is 0.5)
 @returns tuple of vector<Image> of train and test
 */
-tuple<vector<Image>, vector<Image>> createData(){
+tuple<vector<Image>, vector<Image>> createData(float split = 0.5){
 
     vector<Image> train;
     vector<Image> test;
@@ -24,7 +25,7 @@ tuple<vector<Image>, vector<Image>> createData(){
         string path = "../images/archive/" + to_string(i) + "_" + to_string(subject) + ".jpg";
         auto image = Image(path.c_str());
 
-        if(image.imageNumber <= 6){
+        if(image.imageNumber <= int(split*10) - 1){
             train.push_back(image);
         }
         else{
@@ -97,6 +98,7 @@ Matrix<float> Train(vector<Image> trainData, int k, bool verbose=false){
 
     if(verbose){
         cout << "===== Find Eigenvectors and Values =====" << endl;
+        cout << "Dimensions of C: " << C.M << " by " << C.N << endl; 
     }
 
     auto result = C.eigen(50000, verbose);

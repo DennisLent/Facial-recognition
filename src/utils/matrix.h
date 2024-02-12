@@ -428,7 +428,7 @@ struct Matrix {
   }
 
   /*
-  @brief Gram-Schmidt process to form an orthonormal basis for matrix. link: https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+  @brief Modified Gram-Schmidt process to form an orthonormal basis for matrix. link: https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
   @returns Matrix of floats that contain the orthonormal basis
   */
   Matrix<float> GramSchmidt(){
@@ -461,6 +461,18 @@ struct Matrix {
       return result;
     };
 
+          //dot product for projections
+      auto dotProduct = [](Matrix<float> a, Matrix<float> b){
+
+        float result = 0.0;
+
+        for(int i = 0; i<a.M; i++){
+          result += a(i,0) * b(i,0);
+        }
+
+        return result;
+      };
+
     //Gram Schmidt process
     auto result = Matrix<float>(this->M, this->N);
 
@@ -472,19 +484,20 @@ struct Matrix {
     //iterate over every column
     for(int i = 1; i<this->N; i++){
 
-      Matrix<float> v2 = temp.getColumn(i);
+      Matrix<float> vi = temp.getColumn(i);
 
       //subtract projection of colum on each previous column
       for(int j = 0; j<i; j++){
-        auto projection = proj(result.getColumn(j), v2);
-        v2 -= projection;
+        Matrix<float> vj = result.getColumn(j);
+        float dot = dotProduct(vj, vi);
+        vi -= (vj * dot);
       }
 
       //normalize the vector
-      v2 /= v2.norm();
+      vi /= vi.norm();
 
       //add vector to result
-      result.setColumn(i, v2);
+      result.setColumn(i, vi);
 
     }
 
