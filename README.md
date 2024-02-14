@@ -3,6 +3,11 @@ This project is an attempt to run facial recognition using the method of [Eigenf
 
 All the necessary functions can be found in src/utils and the testing code can be found in src/tests.
 
+## Prerequisites
+* C++ compiler (e.g. GCC)
+* [OpenCV](https://docs.opencv.org/4.x/d7/d9f/tutorial_linux_install.html)
+* [OpenMP](https://www.iitgoa.ac.in/hpcshiksha/HPC%20Shiksha%20-%20OpenMP%20Installation%20Guide.pdf)
+
 ## Overview
 The project can be broken down into 3 main parts
 1. Matrix implementation
